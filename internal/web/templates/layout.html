@@ -1,0 +1,12 @@
+{{define "layout"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{.Title}} · ffs.bz</title>
+  <link rel="stylesheet" href="/admin/static/style.css">
+</head>
+<body>
+  <header><a href="/admin">ffs.bz admin</a></header>
+  <main>{{template "content" .}}</main>
+</body>
+</html>{{end}}

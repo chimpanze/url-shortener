@@ -1,0 +1,8 @@
+body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+header a { font-weight: bold; text-decoration: none; color: inherit; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { padding: .4rem .6rem; border-bottom: 1px solid #ddd; text-align: left; }
+.error { color: #b00020; }
+form label { display: block; margin: .5rem 0 .2rem; }
+form input[type=text], form input[type=password] { width: 100%; padding: .4rem; font-size: 1rem; }
+button { padding: .5rem 1rem; font-size: 1rem; cursor: pointer; }
