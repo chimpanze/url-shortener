@@ -1,0 +1,27 @@
+{{define "content"}}
+{{with .Data}}
+<p><a href="/admin">← back</a></p>
+<h1>{{.Link.Slug}}</h1>
+<p>Destination: <code>{{.Link.Destination}}</code></p>
+<p>Total clicks: <strong>{{.Total}}</strong></p>
+
+<h2>Actions</h2>
+<form method="post" action="/admin/links/{{.Link.ID}}/delete" onsubmit="return confirm('Delete this link?');">
+  <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+  <button type="submit">Delete link</button>
+</form>
+<p><a href="/admin/links/{{.Link.ID}}/edit">Edit destination</a></p>
+
+<h2>Recent clicks</h2>
+<table>
+  <tr><th>When</th><th>Referer</th><th>User-Agent</th></tr>
+  {{range .Clicks}}
+  <tr>
+    <td>{{.TS.Format "2006-01-02 15:04:05"}}</td>
+    <td>{{.Referer}}</td>
+    <td>{{.UserAgent}}</td>
+  </tr>
+  {{end}}
+</table>
+{{end}}
+{{end}}
