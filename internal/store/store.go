@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"ffs.bz/migrations"
+	"url-shortener/migrations"
 
 	_ "modernc.org/sqlite"
 )

@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 type Event struct {

@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 var (

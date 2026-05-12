@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 var ErrLoginFailed = errors.New("auth: invalid password")
@@ -31,7 +31,7 @@ type SessionManager struct {
 
 func NewSessionManager(s *store.Store, cfg SessionConfig) *SessionManager {
 	if cfg.CookieName == "" {
-		cfg.CookieName = "ffsbz_session"
+		cfg.CookieName = "urlshortener_session"
 	}
 	if cfg.TTL == 0 {
 		cfg.TTL = 7 * 24 * time.Hour

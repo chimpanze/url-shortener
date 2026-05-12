@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"net/http"
 
-	"ffs.bz/internal/auth"
+	"url-shortener/internal/auth"
 )
 
 func (s *Server) csrfProtect(next http.Handler) http.Handler {

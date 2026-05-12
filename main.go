@@ -16,11 +16,11 @@ import (
 
 	"golang.org/x/term"
 
-	"ffs.bz/internal/auth"
-	"ffs.bz/internal/clicklog"
-	"ffs.bz/internal/shortener"
-	"ffs.bz/internal/store"
-	"ffs.bz/internal/web"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/clicklog"
+	"url-shortener/internal/shortener"
+	"url-shortener/internal/store"
+	"url-shortener/internal/web"
 )
 
 var stdinReader = bufio.NewReader(os.Stdin)
@@ -47,7 +47,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: ffsbz <serve|set-password|migrate> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: url-shortener <serve|set-password|migrate> [flags]")
 }
 
 func openStore(dbPath string) (*store.Store, error) {
@@ -59,7 +59,7 @@ func openStore(dbPath string) (*store.Store, error) {
 
 func cmdMigrate(args []string) int {
 	fs := flag.NewFlagSet("migrate", flag.ExitOnError)
-	dbPath := fs.String("db", "ffsbz.db", "path to SQLite database")
+	dbPath := fs.String("db", "url-shortener.db", "path to SQLite database")
 	_ = fs.Parse(args)
 
 	s, err := openStore(*dbPath)
@@ -74,7 +74,7 @@ func cmdMigrate(args []string) int {
 
 func cmdSetPassword(args []string) int {
 	fs := flag.NewFlagSet("set-password", flag.ExitOnError)
-	dbPath := fs.String("db", "ffsbz.db", "path to SQLite database")
+	dbPath := fs.String("db", "url-shortener.db", "path to SQLite database")
 	_ = fs.Parse(args)
 
 	s, err := openStore(*dbPath)
@@ -135,7 +135,7 @@ func readPassword(prompt string) (string, error) {
 func cmdServe(args []string) int {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	addr := fs.String("addr", ":8080", "HTTP listen address")
-	dbPath := fs.String("db", "ffsbz.db", "path to SQLite database")
+	dbPath := fs.String("db", "url-shortener.db", "path to SQLite database")
 	secureCookies := fs.Bool("secure-cookies", false, "set Secure flag on session cookie")
 	_ = fs.Parse(args)
 
@@ -151,7 +151,7 @@ func cmdServe(args []string) int {
 
 	if _, err := s.GetAdminPasswordHash(context.Background()); err != nil {
 		if errors.Is(err, store.ErrNotFound) {
-			slog.Error("no admin password set; run `ffsbz set-password` first")
+			slog.Error("no admin password set; run `url-shortener set-password` first")
 			return 1
 		}
 		slog.Error("read admin password", "err", err)
@@ -159,7 +159,7 @@ func cmdServe(args []string) int {
 	}
 
 	sessions := auth.NewSessionManager(s, auth.SessionConfig{
-		CookieName:    "ffsbz_session",
+		CookieName:    "urlshortener_session",
 		TTL:           7 * 24 * time.Hour,
 		SecureCookies: *secureCookies,
 		LoginPath:     "/admin/login",

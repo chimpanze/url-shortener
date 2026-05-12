@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"ffs.bz/internal/auth"
+	"url-shortener/internal/auth"
 )
 
 func (s *Server) handleLoginGet(w http.ResponseWriter, r *http.Request) {

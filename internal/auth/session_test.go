@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 func newStore(t *testing.T) *store.Store {
@@ -28,14 +28,14 @@ func TestLoginCreatesSession(t *testing.T) {
 	hash, _ := HashPassword("pw")
 	_ = s.SetAdminPasswordHash(ctx, hash)
 
-	mgr := NewSessionManager(s, SessionConfig{TTL: time.Hour, CookieName: "ffsbz_session"})
+	mgr := NewSessionManager(s, SessionConfig{TTL: time.Hour, CookieName: "urlshortener_session"})
 	w := httptest.NewRecorder()
 	if err := mgr.Login(ctx, w, "pw"); err != nil {
 		t.Fatalf("Login: %v", err)
 	}
 	resp := w.Result()
 	cookies := resp.Cookies()
-	if len(cookies) == 0 || cookies[0].Name != "ffsbz_session" {
+	if len(cookies) == 0 || cookies[0].Name != "urlshortener_session" {
 		t.Fatal("expected session cookie")
 	}
 }
@@ -44,7 +44,7 @@ func TestLoginWrongPassword(t *testing.T) {
 	s := newStore(t)
 	hash, _ := HashPassword("pw")
 	_ = s.SetAdminPasswordHash(context.Background(), hash)
-	mgr := NewSessionManager(s, SessionConfig{TTL: time.Hour, CookieName: "ffsbz_session"})
+	mgr := NewSessionManager(s, SessionConfig{TTL: time.Hour, CookieName: "urlshortener_session"})
 	w := httptest.NewRecorder()
 	if err := mgr.Login(context.Background(), w, "wrong"); err == nil {
 		t.Fatal("expected error")
@@ -55,7 +55,7 @@ func TestRequireAuthMiddleware(t *testing.T) {
 	s := newStore(t)
 	hash, _ := HashPassword("pw")
 	_ = s.SetAdminPasswordHash(context.Background(), hash)
-	mgr := NewSessionManager(s, SessionConfig{TTL: time.Hour, CookieName: "ffsbz_session", LoginPath: "/admin/login"})
+	mgr := NewSessionManager(s, SessionConfig{TTL: time.Hour, CookieName: "urlshortener_session", LoginPath: "/admin/login"})
 
 	// Authenticated.
 	w := httptest.NewRecorder()

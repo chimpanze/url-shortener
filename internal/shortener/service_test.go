@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 func newTestService(t *testing.T) (*Service, *store.Store) {

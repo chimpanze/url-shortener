@@ -1,5 +1,5 @@
-ffsbz
-ffs.bz
+url-shortener
 *.db
 *.db-wal
 *.db-shm
+.idea/

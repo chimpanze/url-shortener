@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"ffs.bz/internal/auth"
-	"ffs.bz/internal/clicklog"
-	"ffs.bz/internal/shortener"
-	"ffs.bz/internal/store"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/clicklog"
+	"url-shortener/internal/shortener"
+	"url-shortener/internal/store"
 )
 
 type testEnv struct {
@@ -29,7 +29,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	t.Cleanup(func() { s.Close() })
 
 	mgr := auth.NewSessionManager(s, auth.SessionConfig{
-		CookieName: "ffsbz_session", TTL: time.Hour, LoginPath: "/admin/login",
+		CookieName: "urlshortener_session", TTL: time.Hour, LoginPath: "/admin/login",
 	})
 	cl := clicklog.New(s, clicklog.Config{
 		BufferSize: 16, FlushMaxBatch: 4, FlushInterval: 20 * time.Millisecond,

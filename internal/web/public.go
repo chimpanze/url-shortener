@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"ffs.bz/internal/clicklog"
-	"ffs.bz/internal/store"
+	"url-shortener/internal/clicklog"
+	"url-shortener/internal/store"
 
 	"github.com/go-chi/chi/v5"
 )

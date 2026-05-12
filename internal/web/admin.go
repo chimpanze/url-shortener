@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"ffs.bz/internal/auth"
-	"ffs.bz/internal/store"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/store"
 )
 
 func (s *Server) handleAdminList(w http.ResponseWriter, r *http.Request) {

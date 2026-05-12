@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 func TestAdminListShowsLinks(t *testing.T) {

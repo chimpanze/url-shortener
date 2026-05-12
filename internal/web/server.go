@@ -4,10 +4,10 @@ import (
 	"html/template"
 	"net/http"
 
-	"ffs.bz/internal/auth"
-	"ffs.bz/internal/clicklog"
-	"ffs.bz/internal/shortener"
-	"ffs.bz/internal/store"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/clicklog"
+	"url-shortener/internal/shortener"
+	"url-shortener/internal/store"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"ffs.bz/internal/auth"
-	"ffs.bz/internal/store"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/store"
 )
 
 func setAdminPassword(t *testing.T, env *testEnv, pw string) {
@@ -66,7 +66,7 @@ func TestLoginSuccess(t *testing.T) {
 		t.Fatalf("status = %d", rw.Code)
 	}
 	cookies := rw.Result().Cookies()
-	if len(cookies) == 0 || cookies[0].Name != "ffsbz_session" {
+	if len(cookies) == 0 || cookies[0].Name != "urlshortener_session" {
 		t.Fatalf("expected session cookie, got %+v", cookies)
 	}
 }
@@ -123,7 +123,7 @@ func TestAdminRouteRedirectsWhenSessionExpired(t *testing.T) {
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
-	req.AddCookie(&http.Cookie{Name: "ffsbz_session", Value: expired.Token})
+	req.AddCookie(&http.Cookie{Name: "urlshortener_session", Value: expired.Token})
 	rw := httptest.NewRecorder()
 	env.server.Router().ServeHTTP(rw, req)
 

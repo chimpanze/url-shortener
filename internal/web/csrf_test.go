@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"ffs.bz/internal/auth"
-	"ffs.bz/internal/store"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/store"
 )
 
 func TestCSRFMiddlewareRejectsMissing(t *testing.T) {
@@ -29,7 +29,7 @@ func TestCSRFMiddlewareRejectsMissing(t *testing.T) {
 	})))
 
 	req := httptest.NewRequest(http.MethodPost, "/admin/anything", nil)
-	req.AddCookie(&http.Cookie{Name: "ffsbz_session", Value: "tok-1"})
+	req.AddCookie(&http.Cookie{Name: "urlshortener_session", Value: "tok-1"})
 	rw := httptest.NewRecorder()
 	handler.ServeHTTP(rw, req)
 	if rw.Code != http.StatusForbidden {
@@ -55,7 +55,7 @@ func TestCSRFMiddlewareAcceptsMatching(t *testing.T) {
 	form := url.Values{"csrf_token": []string{"csrf-2"}}
 	req := httptest.NewRequest(http.MethodPost, "/admin/anything", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.AddCookie(&http.Cookie{Name: "ffsbz_session", Value: "tok-2"})
+	req.AddCookie(&http.Cookie{Name: "urlshortener_session", Value: "tok-2"})
 	rw := httptest.NewRecorder()
 	handler.ServeHTTP(rw, req)
 	if rw.Code != http.StatusOK {

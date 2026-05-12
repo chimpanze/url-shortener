@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"ffs.bz/internal/store"
+	"url-shortener/internal/store"
 )
 
 func newStore(t *testing.T) *store.Store {
