@@ -19,6 +19,24 @@ func setAdminPassword(t *testing.T, env *testEnv, pw string) {
 	}
 }
 
+func authCookie(t *testing.T, env *testEnv) *http.Cookie {
+	t.Helper()
+	setAdminPassword(t, env, "pw")
+	form := url.Values{"password": []string{"pw"}}
+	req := httptest.NewRequest(http.MethodPost, "/admin/login", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rw := httptest.NewRecorder()
+	env.server.Router().ServeHTTP(rw, req)
+	if rw.Code != http.StatusSeeOther {
+		t.Fatalf("authCookie: login status = %d", rw.Code)
+	}
+	cookies := rw.Result().Cookies()
+	if len(cookies) == 0 {
+		t.Fatal("authCookie: no cookie returned")
+	}
+	return cookies[0]
+}
+
 func TestLoginPageRenders(t *testing.T) {
 	env := newTestEnv(t)
 	req := httptest.NewRequest(http.MethodGet, "/admin/login", nil)
@@ -68,16 +86,12 @@ func TestLoginWrong(t *testing.T) {
 
 func TestLogoutClearsSession(t *testing.T) {
 	env := newTestEnv(t)
-	setAdminPassword(t, env, "pw")
+	cookie := authCookie(t, env)
+	sess, _ := env.store.GetSession(context.Background(), cookie.Value)
 
-	form := url.Values{"password": []string{"pw"}}
-	req := httptest.NewRequest(http.MethodPost, "/admin/login", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	rw := httptest.NewRecorder()
-	env.server.Router().ServeHTTP(rw, req)
-	cookie := rw.Result().Cookies()[0]
-
-	logoutReq := httptest.NewRequest(http.MethodPost, "/admin/logout", nil)
+	logoutForm := url.Values{"csrf_token": []string{sess.CSRFToken}}
+	logoutReq := httptest.NewRequest(http.MethodPost, "/admin/logout", strings.NewReader(logoutForm.Encode()))
+	logoutReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	logoutReq.AddCookie(cookie)
 	logoutRW := httptest.NewRecorder()
 	env.server.Router().ServeHTTP(logoutRW, logoutReq)

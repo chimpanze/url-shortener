@@ -49,7 +49,12 @@ func (s *Server) buildRouter() chi.Router {
 	r.Route("/admin", func(r chi.Router) {
 		r.Get("/login", s.handleLoginGet)
 		r.Post("/login", s.handleLoginPost)
-		r.Post("/logout", s.handleLogout)
+
+		r.Group(func(r chi.Router) {
+			r.Use(s.deps.Sessions.RequireAuth)
+			r.Get("/", s.handleAdminList)
+			r.With(s.csrfProtect).Post("/logout", s.handleLogout)
+		})
 	})
 
 	r.Get("/", s.handleHome)
