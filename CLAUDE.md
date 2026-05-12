@@ -99,3 +99,55 @@ UI shares the same vhost — there's no separate admin port.
 - Long-running queries inside `RequireAuth` — it runs on every admin request.
   If you need to add periodic work there (e.g. expired-session cleanup),
   fire-and-forget in a goroutine.
+
+## Claude Code best practices
+
+### Process
+
+- For non-trivial features or bug fixes, follow the superpowers flow:
+  `brainstorming` → `writing-plans` → `subagent-driven-development` (or
+  `executing-plans`). For tiny edits, just edit.
+- Stay TDD: failing test → confirm it fails → minimal implementation →
+  confirm it passes → commit. The implementation plan was built this way and
+  every package's tests follow the pattern.
+- Stale "undefined: X" diagnostics often appear mid-TDD (between the
+  failing-test step and the implementation step). Don't trust them — verify
+  with `go test ./...` before reacting.
+
+### Verification before pushing
+
+- `go build ./...`
+- `go test ./...` and `go test -race ./...`
+- `golangci-lint run ./...` (CI will catch this otherwise)
+
+### Conventions
+
+- Conventional commits. Only `feat:` and `fix:` reach the release changelog;
+  other prefixes are filtered out by `.goreleaser.yml`.
+- Match the existing package boundaries. `internal/web` shouldn't grow into
+  a god package — handlers belong there, business logic doesn't.
+- For new mutating admin routes: `r.With(s.csrfProtect).Post(...)` and a
+  hidden `csrf_token` field in the form.
+
+### Subagents
+
+- Mechanical, plan-supplied tasks → Haiku is fine.
+- Multi-file integration / pattern-matching → Sonnet.
+- Architecture, design, or judgment calls → do them yourself; don't delegate
+  the thinking.
+
+### GitHub
+
+- `gh` is authenticated (account: `chimpanze`). Use it for issues, PRs,
+  releases.
+- Tag pushes (`vX.Y.Z`) trigger the release pipeline. Don't tag casually.
+
+### Don't
+
+- Rename, restructure, or rewrite the historical specs/plans under
+  `docs/superpowers/`. They reference the original `ffs.bz` module name —
+  that's intentional, leave it.
+- Use `--no-verify`, `--no-gpg-sign`, or amend pushed commits without an
+  explicit go-ahead.
+- Run destructive git operations (force-push, `reset --hard`, `clean -f`,
+  branch deletion) without confirming first.
