@@ -1,5 +1,8 @@
 # ffs.bz
 
+[![Go](https://img.shields.io/github/go-mod/go-version/chimpanze/url-shortener)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A small single-binary URL shortener written in Go.
 
 ## Build
