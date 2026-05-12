@@ -147,3 +147,63 @@ func TestAdminDelete(t *testing.T) {
 		t.Errorf("link not deleted (err=%v)", err)
 	}
 }
+
+func TestAdminEditPage(t *testing.T) {
+	env := newTestEnv(t)
+	id, _ := env.store.CreateLink(context.Background(), "abc", "https://old.example", time.Now())
+	cookie := authCookie(t, env)
+	req := httptest.NewRequest(http.MethodGet, "/admin/links/"+strconv.FormatInt(id, 10)+"/edit", nil)
+	req.AddCookie(cookie)
+	rw := httptest.NewRecorder()
+	env.server.Router().ServeHTTP(rw, req)
+	if rw.Code != http.StatusOK {
+		t.Fatalf("status = %d", rw.Code)
+	}
+	if !strings.Contains(rw.Body.String(), "https://old.example") {
+		t.Errorf("expected old destination prefilled")
+	}
+}
+
+func TestAdminEditPost(t *testing.T) {
+	env := newTestEnv(t)
+	id, _ := env.store.CreateLink(context.Background(), "abc", "https://old.example", time.Now())
+	cookie := authCookie(t, env)
+	sess, _ := env.store.GetSession(context.Background(), cookie.Value)
+
+	form := url.Values{
+		"csrf_token":  []string{sess.CSRFToken},
+		"destination": []string{"https://new.example"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/admin/links/"+strconv.FormatInt(id, 10)+"/edit", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(cookie)
+	rw := httptest.NewRecorder()
+	env.server.Router().ServeHTTP(rw, req)
+	if rw.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d", rw.Code)
+	}
+	link, _ := env.store.GetLinkByID(context.Background(), id)
+	if link.Destination != "https://new.example" {
+		t.Errorf("destination = %q", link.Destination)
+	}
+}
+
+func TestAdminEditRejectsBadURL(t *testing.T) {
+	env := newTestEnv(t)
+	id, _ := env.store.CreateLink(context.Background(), "abc", "https://example.com", time.Now())
+	cookie := authCookie(t, env)
+	sess, _ := env.store.GetSession(context.Background(), cookie.Value)
+
+	form := url.Values{
+		"csrf_token":  []string{sess.CSRFToken},
+		"destination": []string{"javascript:alert(1)"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/admin/links/"+strconv.FormatInt(id, 10)+"/edit", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(cookie)
+	rw := httptest.NewRecorder()
+	env.server.Router().ServeHTTP(rw, req)
+	if rw.Code != http.StatusBadRequest {
+		t.Errorf("status = %d", rw.Code)
+	}
+}

@@ -82,6 +82,13 @@ func (s *Service) ResolveLink(ctx context.Context, slug string) (*store.Link, er
 	return s.store.GetLinkBySlug(ctx, slug)
 }
 
+func (s *Service) UpdateDestination(ctx context.Context, id int64, destination string) error {
+	if err := validateDestination(destination); err != nil {
+		return err
+	}
+	return s.store.UpdateDestination(ctx, id, destination)
+}
+
 func validateDestination(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil {
