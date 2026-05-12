@@ -46,8 +46,14 @@ func (s *Server) buildRouter() chi.Router {
 
 	r.Handle("/admin/static/*", http.StripPrefix("/admin/static/", http.FileServer(staticFileSystem())))
 
-	r.Get("/{slug}", s.handleRedirect)
+	r.Route("/admin", func(r chi.Router) {
+		r.Get("/login", s.handleLoginGet)
+		r.Post("/login", s.handleLoginPost)
+		r.Post("/logout", s.handleLogout)
+	})
+
 	r.Get("/", s.handleHome)
+	r.Get("/{slug}", s.handleRedirect)
 
 	return r
 }
