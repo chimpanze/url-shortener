@@ -25,6 +25,13 @@ import (
 
 var stdinReader = bufio.NewReader(os.Stdin)
 
+// Build-time identifiers, injected by goreleaser via -ldflags.
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	if len(os.Args) < 2 {
 		usage()
@@ -40,6 +47,9 @@ func main() {
 		os.Exit(cmdSetPassword(args))
 	case "serve":
 		os.Exit(cmdServe(args))
+	case "version", "--version", "-v":
+		fmt.Printf("url-shortener %s (commit %s, built %s)\n", version, commit, date)
+		os.Exit(0)
 	default:
 		usage()
 		os.Exit(2)
@@ -47,7 +57,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: url-shortener <serve|set-password|migrate> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: url-shortener <serve|set-password|migrate|version> [flags]")
 }
 
 func openStore(dbPath string) (*store.Store, error) {

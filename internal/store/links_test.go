@@ -117,7 +117,9 @@ func TestDeleteLinkCascadesClicks(t *testing.T) {
 		t.Fatal(err)
 	}
 	var n int
-	s.DB().QueryRow(`SELECT COUNT(*) FROM clicks WHERE link_id = ?`, id).Scan(&n)
+	if err := s.DB().QueryRow(`SELECT COUNT(*) FROM clicks WHERE link_id = ?`, id).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
 	if n != 0 {
 		t.Fatalf("clicks not cascaded, got %d remaining", n)
 	}

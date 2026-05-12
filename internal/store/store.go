@@ -59,7 +59,9 @@ func (s *Store) migrate(ctx context.Context) error {
 
 	for _, name := range names {
 		var version int
-		fmt.Sscanf(name, "%d_", &version)
+		if _, err := fmt.Sscanf(name, "%d_", &version); err != nil || version == 0 {
+			return fmt.Errorf("migration %q: cannot parse version prefix", name)
+		}
 
 		var applied int
 		if err := s.db.QueryRowContext(ctx,
