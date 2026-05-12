@@ -7,12 +7,20 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"golang.org/x/term"
 
 	"ffs.bz/internal/auth"
+	"ffs.bz/internal/clicklog"
+	"ffs.bz/internal/shortener"
 	"ffs.bz/internal/store"
+	"ffs.bz/internal/web"
 )
 
 var stdinReader = bufio.NewReader(os.Stdin)
@@ -125,7 +133,74 @@ func readPassword(prompt string) (string, error) {
 }
 
 func cmdServe(args []string) int {
-	// Stub - implemented in next task.
-	fmt.Fprintln(os.Stderr, "serve not implemented yet")
-	return 1
+	fs := flag.NewFlagSet("serve", flag.ExitOnError)
+	addr := fs.String("addr", ":8080", "HTTP listen address")
+	dbPath := fs.String("db", "ffsbz.db", "path to SQLite database")
+	secureCookies := fs.Bool("secure-cookies", false, "set Secure flag on session cookie")
+	_ = fs.Parse(args)
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
+	s, err := openStore(*dbPath)
+	if err != nil {
+		slog.Error("open store", "err", err)
+		return 1
+	}
+	defer s.Close()
+
+	if _, err := s.GetAdminPasswordHash(context.Background()); err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			slog.Error("no admin password set; run `ffsbz set-password` first")
+			return 1
+		}
+		slog.Error("read admin password", "err", err)
+		return 1
+	}
+
+	sessions := auth.NewSessionManager(s, auth.SessionConfig{
+		CookieName:    "ffsbz_session",
+		TTL:           7 * 24 * time.Hour,
+		SecureCookies: *secureCookies,
+		LoginPath:     "/admin/login",
+	})
+	clicks := clicklog.New(s, clicklog.DefaultConfig())
+	clicks.Start()
+
+	svr := web.NewServer(web.Deps{
+		Store:     s,
+		Shortener: shortener.New(s),
+		Sessions:  sessions,
+		Clicks:    clicks,
+	})
+
+	httpServer := &http.Server{
+		Addr:              *addr,
+		Handler:           svr.Router(),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	errCh := make(chan error, 1)
+	go func() {
+		slog.Info("listening", "addr", *addr)
+		errCh <- httpServer.ListenAndServe()
+	}()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("server stopped", "err", err)
+			return 1
+		}
+	case sig := <-sigCh:
+		slog.Info("shutting down", "signal", sig.String())
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = httpServer.Shutdown(shutdownCtx)
+		clicks.Shutdown(shutdownCtx)
+	}
+	return 0
 }
