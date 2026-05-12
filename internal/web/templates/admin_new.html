@@ -1,0 +1,10 @@
+{{define "content"}}
+<h1>New link</h1>
+{{if .Flash}}<p class="error">{{.Flash}}</p>{{end}}
+<form method="post" action="/admin/new">
+  <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+  <label>Destination URL<input type="text" name="destination" value="{{with .Data}}{{.Destination}}{{end}}" required></label>
+  <label>Custom slug (optional)<input type="text" name="slug" value="{{with .Data}}{{.Slug}}{{end}}"></label>
+  <button type="submit">Create</button>
+</form>
+{{end}}

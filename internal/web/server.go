@@ -54,6 +54,12 @@ func (s *Server) buildRouter() chi.Router {
 			r.Use(s.deps.Sessions.RequireAuth)
 			r.Get("/", s.handleAdminList)
 			r.With(s.csrfProtect).Post("/logout", s.handleLogout)
+			r.Get("/new", s.handleAdminNewGet)
+			r.With(s.csrfProtect).Post("/new", s.handleAdminNewPost)
+			r.Get("/links/{id}", s.handleAdminDetail)
+			r.With(s.csrfProtect).Post("/links/{id}/delete", s.handleAdminDelete)
+			r.Get("/links/{id}/edit", s.handleAdminEditGet)
+			r.With(s.csrfProtect).Post("/links/{id}/edit", s.handleAdminEditPost)
 		})
 	})
 
@@ -68,3 +74,7 @@ func (s *Server) handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleRedirect is implemented in public.go (Task 13).
+
+func chiURLParam(r *http.Request, key string) string {
+	return chi.URLParam(r, key)
+}
