@@ -76,3 +76,16 @@ func TestCreateLinkCustomSlugCollision(t *testing.T) {
 		t.Errorf("expected ErrSlugTaken, got %v", err)
 	}
 }
+
+func TestCreateLinkRandomExhausted(t *testing.T) {
+	svc, _ := newTestService(t)
+	// Force every random attempt to return "stuck", and pre-occupy that slug.
+	svc.genCode = func(int) (string, error) { return "stuck", nil }
+	if _, err := svc.CreateLink(context.Background(), "stuck", "https://example.com"); err != nil {
+		t.Fatal(err)
+	}
+	_, err := svc.CreateLink(context.Background(), "", "https://other.example")
+	if !errors.Is(err, ErrSlugExhausted) {
+		t.Errorf("expected ErrSlugExhausted, got %v", err)
+	}
+}

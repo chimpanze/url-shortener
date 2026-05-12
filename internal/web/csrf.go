@@ -1,6 +1,7 @@
 package web
 
 import (
+	"crypto/subtle"
 	"net/http"
 
 	"ffs.bz/internal/auth"
@@ -22,7 +23,7 @@ func (s *Server) csrfProtect(next http.Handler) http.Handler {
 			return
 		}
 		token := r.PostForm.Get("csrf_token")
-		if token == "" || token != sess.CSRFToken {
+		if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(sess.CSRFToken)) != 1 {
 			http.Error(w, "csrf token mismatch", http.StatusForbidden)
 			return
 		}

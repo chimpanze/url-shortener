@@ -7,8 +7,10 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"ffs.bz/internal/auth"
+	"ffs.bz/internal/store"
 )
 
 func setAdminPassword(t *testing.T, env *testEnv, pw string) {
@@ -102,5 +104,33 @@ func TestLogoutClearsSession(t *testing.T) {
 	gone := logoutRW.Result().Cookies()
 	if len(gone) == 0 || gone[0].MaxAge >= 0 {
 		t.Errorf("expected cookie cleared, got %+v", gone)
+	}
+}
+
+func TestAdminRouteRedirectsWhenSessionExpired(t *testing.T) {
+	env := newTestEnv(t)
+	setAdminPassword(t, env, "pw")
+
+	past := time.Now().Add(-time.Hour)
+	expired := store.Session{
+		Token:     "expired-token",
+		CSRFToken: "csrf",
+		CreatedAt: past.Add(-time.Hour),
+		ExpiresAt: past,
+	}
+	if err := env.store.CreateSession(context.Background(), expired); err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin", nil)
+	req.AddCookie(&http.Cookie{Name: "ffsbz_session", Value: expired.Token})
+	rw := httptest.NewRecorder()
+	env.server.Router().ServeHTTP(rw, req)
+
+	if rw.Code != http.StatusSeeOther {
+		t.Errorf("expected 303, got %d", rw.Code)
+	}
+	if loc := rw.Header().Get("Location"); loc != "/admin/login" {
+		t.Errorf("location = %q, want /admin/login", loc)
 	}
 }

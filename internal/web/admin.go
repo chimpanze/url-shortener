@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -85,8 +86,14 @@ func (s *Server) handleAdminDetail(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	total, _ := s.deps.Store.CountClicks(r.Context(), id)
-	clicks, _ := s.deps.Store.ListClicks(r.Context(), id, 100)
+	total, err := s.deps.Store.CountClicks(r.Context(), id)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "count clicks", "link_id", id, "err", err)
+	}
+	clicks, err := s.deps.Store.ListClicks(r.Context(), id, 100)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "list clicks", "link_id", id, "err", err)
+	}
 
 	csrf := ""
 	if sess, ok := auth.SessionFromContext(r.Context()); ok {
@@ -139,16 +146,13 @@ func (s *Server) handleAdminEditPost(w http.ResponseWriter, r *http.Request) {
 	}
 	dest := r.PostForm.Get("destination")
 	if err := s.deps.Shortener.UpdateDestination(r.Context(), id, dest); err != nil {
-		link, _ := s.deps.Store.GetLinkByID(r.Context(), id)
 		csrf := ""
 		if sess, ok := auth.SessionFromContext(r.Context()); ok {
 			csrf = sess.CSRFToken
 		}
-		if link != nil {
-			link.Destination = dest
-		}
 		s.render(w, "admin_edit.html", http.StatusBadRequest, templateData{
-			Title: "Edit", CSRF: csrf, Flash: err.Error(), Data: link,
+			Title: "Edit", CSRF: csrf, Flash: err.Error(),
+			Data: &store.Link{ID: id, Destination: dest},
 		})
 		return
 	}

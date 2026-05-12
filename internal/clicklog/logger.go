@@ -3,6 +3,7 @@ package clicklog
 import (
 	"context"
 	"log/slog"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -27,11 +28,12 @@ func DefaultConfig() Config {
 }
 
 type Logger struct {
-	store   *store.Store
-	cfg     Config
-	ch      chan Event
-	done    chan struct{}
-	dropped int64
+	store    *store.Store
+	cfg      Config
+	ch       chan Event
+	done     chan struct{}
+	dropped  int64
+	stopOnce sync.Once
 }
 
 func New(s *store.Store, cfg Config) *Logger {
@@ -66,7 +68,7 @@ func (l *Logger) tryEnqueue(e Event) bool {
 }
 
 func (l *Logger) Shutdown(ctx context.Context) {
-	close(l.ch)
+	l.stopOnce.Do(func() { close(l.ch) })
 	select {
 	case <-l.done:
 	case <-ctx.Done():

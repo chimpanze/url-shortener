@@ -207,19 +207,24 @@ func cmdServe(args []string) int {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
+	shutdown := func() {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = httpServer.Shutdown(shutdownCtx)
+		clicks.Shutdown(shutdownCtx)
+		close(stopCleanup)
+	}
+
 	select {
 	case err := <-errCh:
+		shutdown()
 		if !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("server stopped", "err", err)
 			return 1
 		}
 	case sig := <-sigCh:
 		slog.Info("shutting down", "signal", sig.String())
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		_ = httpServer.Shutdown(shutdownCtx)
-		clicks.Shutdown(shutdownCtx)
-		close(stopCleanup)
+		shutdown()
 	}
 	return 0
 }

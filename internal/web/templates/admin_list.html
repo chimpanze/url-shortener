@@ -3,14 +3,13 @@
 <p><a href="/admin/new">+ New link</a> · <form method="post" action="/admin/logout" style="display:inline"><input type="hidden" name="csrf_token" value="{{.CSRF}}"><button>Log out</button></form></p>
 {{with .Data}}
 <table>
-  <tr><th>Slug</th><th>Destination</th><th>Clicks</th><th>Created</th><th></th></tr>
+  <tr><th>Slug</th><th>Destination</th><th>Clicks</th><th>Created</th></tr>
   {{range .}}
   <tr>
     <td><a href="/admin/links/{{.ID}}">{{.Slug}}</a></td>
     <td>{{.Destination}}</td>
     <td>{{.Clicks}}</td>
     <td>{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
-    <td></td>
   </tr>
   {{end}}
 </table>

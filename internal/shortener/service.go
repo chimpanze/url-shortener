@@ -30,12 +30,13 @@ const (
 )
 
 type Service struct {
-	store *store.Store
-	now   func() time.Time
+	store   *store.Store
+	now     func() time.Time
+	genCode func(length int) (string, error)
 }
 
 func New(s *store.Store) *Service {
-	return &Service{store: s, now: time.Now}
+	return &Service{store: s, now: time.Now, genCode: RandomCode}
 }
 
 func (s *Service) CreateLink(ctx context.Context, slug, destination string) (*store.Link, error) {
@@ -63,7 +64,7 @@ func (s *Service) CreateLink(ctx context.Context, slug, destination string) (*st
 
 func (s *Service) createRandom(ctx context.Context, destination string) (*store.Link, error) {
 	for i := 0; i < maxCodeRetries; i++ {
-		code, err := RandomCode(randomCodeLength)
+		code, err := s.genCode(randomCodeLength)
 		if err != nil {
 			return nil, err
 		}
