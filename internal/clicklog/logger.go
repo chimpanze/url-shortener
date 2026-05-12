@@ -91,11 +91,13 @@ func (l *Logger) run() {
 				LinkID: e.LinkID, TS: e.TS, Referer: e.Referer, UserAgent: e.UserAgent,
 			}
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		if err := l.store.InsertClicks(ctx, recs); err != nil {
-			slog.Error("clicklog flush failed", "err", err, "n", len(batch))
-		}
-		cancel()
+		func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := l.store.InsertClicks(ctx, recs); err != nil {
+				slog.Error("clicklog flush failed", "err", err, "n", len(batch))
+			}
+		}()
 		batch = batch[:0]
 	}
 

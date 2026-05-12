@@ -167,6 +167,24 @@ func cmdServe(args []string) int {
 	clicks := clicklog.New(s, clicklog.DefaultConfig())
 	clicks.Start()
 
+	stopCleanup := make(chan struct{})
+	go func() {
+		t := time.NewTicker(time.Hour)
+		defer t.Stop()
+		for {
+			select {
+			case <-t.C:
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				if err := s.DeleteExpiredSessions(ctx); err != nil {
+					slog.Warn("delete expired sessions", "err", err)
+				}
+				cancel()
+			case <-stopCleanup:
+				return
+			}
+		}
+	}()
+
 	svr := web.NewServer(web.Deps{
 		Store:     s,
 		Shortener: shortener.New(s),
@@ -201,6 +219,7 @@ func cmdServe(args []string) int {
 		defer cancel()
 		_ = httpServer.Shutdown(shutdownCtx)
 		clicks.Shutdown(shutdownCtx)
+		close(stopCleanup)
 	}
 	return 0
 }
