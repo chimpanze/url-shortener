@@ -1,4 +1,5 @@
 ffsbz
+ffs.bz
 *.db
 *.db-wal
 *.db-shm
