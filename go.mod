@@ -3,7 +3,7 @@ module url-shortener
 go 1.26.5
 
 require (
-	github.com/go-chi/chi/v5 v5.3.0
+	github.com/go-chi/chi/v5 v5.4.0
 	golang.org/x/crypto v0.52.0
 	golang.org/x/term v0.43.0
 	modernc.org/sqlite v1.51.0
